@@ -1,0 +1,17 @@
+{
+  "name": "Mount Wellness",
+  "short_name": "Mount Wellness",
+  "description": "Weekly session plan for the Mount Albert Legion class.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F2EB",
+  "theme_color": "#1B3A5C",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-512-maskable.png", "sizes": "512x512", "type": "image/png",
+      "purpose": "maskable" }
+  ]
+}
