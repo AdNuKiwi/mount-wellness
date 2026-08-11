@@ -52,9 +52,11 @@ body {
    very top of the display and the heading lands under the notch and status bar. The
    top inset pushes it clear. In a browser tab the inset is 0 and nothing changes,
    which is exactly why this is easy to miss until you are standing in the hall. */
+/* Side padding MUST match .wrap below, or the week bar and the exercise column do
+   not line up and the whole page reads as off-centre. */
 header {
   background: var(--navy); color: #F5F2EB;
-  padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1.1rem 1.2rem;
+  padding: calc(1.4rem + env(safe-area-inset-top, 0px)) .8rem 1.2rem;
 }
 @media (prefers-color-scheme: dark) {
   header { background: #10202F; color: var(--ink); }
@@ -73,12 +75,19 @@ header .meta { margin: .3rem 0 0; font-size: .9rem; opacity: .78; }
   color: inherit; border-radius: 9px; cursor: pointer;
 }
 .weeknav button:disabled { opacity: .3; cursor: default; }
+/* min-width:0 is load-bearing. A flex item defaults to min-width:auto, and for a
+   <select> that means it cannot shrink below the width of its LONGEST OPTION. The
+   longest label here rendered 303px; with two 46px buttons and the padding the bar
+   demanded 466px against a 375px iPhone, so Safari zoomed the whole page out to fit
+   and pushed the next-week arrow off screen. Without this line the page is broken on
+   any phone narrower than the widest date label. */
 .weeknav select {
-  flex: 1 1 auto; height: 46px; font: inherit; font-size: .98rem;
+  flex: 1 1 auto; min-width: 0; height: 46px; font: inherit; font-size: .98rem;
   font-weight: 600; padding: 0 .6rem; border-radius: 9px;
   border: 1px solid rgba(255,255,255,.28);
   background: rgba(255,255,255,.1); color: inherit;
   -webkit-appearance: none; appearance: none; text-align: center;
+  text-overflow: ellipsis;
 }
 .weeknav select option { color: #16222E; background: #fff; }
 
@@ -134,17 +143,10 @@ ol.rungs li { padding: .12rem 0; color: var(--muted); }
         font-size: .87rem; }
 .pair-arrow { color: var(--sage); font-weight: 700; line-height: 1.2; }
 .pair-why { color: var(--muted); font-size: .82rem; margin-top: .25rem; }
-.cp-tag { display: inline-block; min-width: 1.9em; margin-right: .45rem;
-          padding: .05rem .35rem; border-radius: 5px; font-size: .72rem;
-          font-weight: 700; letter-spacing: .04em; text-align: center;
-          background: var(--navy); color: var(--cream); vertical-align: .12em; }
-@media (prefers-color-scheme: dark) {
-  .cp-tag { background: rgba(143,188,230,.22); color: var(--navy); }
-}
+.pairlist { margin: .4rem 0 .3rem; padding-left: 1.1rem; font-size: .85rem; }
+.pairlist li { padding: .1rem 0; color: var(--ink); }
 .setup { color: var(--muted); font-size: .84rem; margin: .45rem 0 .2rem; }
 .flow { color: var(--muted); font-size: .84rem; margin-bottom: .3rem; }
-.flag { border-top: 1px solid var(--rule); padding: .75rem 0; }
-.flag-weeks { color: var(--alert); font-size: .84rem; font-weight: 600; }
 footer { color: var(--muted); font-size: .76rem; text-align: center;
          padding: 1.4rem .8rem 0; line-height: 1.6; }
 </style>
@@ -154,7 +156,7 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <h1>Mount Wellness</h1>
 <div class="weeknav">
 <button id="prev" type="button" aria-label="Previous week">&#9664;</button>
-<select id="picker" aria-label="Choose a week"><option value="0">4 May 2026</option><option value="1">11 May 2026</option><option value="2">18 May 2026</option><option value="3">25 May 2026</option><option value="4">1 Jun 2026</option><option value="5">8 Jun 2026</option><option value="6">27 Jul 2026</option><option value="7">3 Aug 2026</option><option value="8">10 Aug 2026 — this week</option><option value="9">17 Aug 2026 — next week (not logged yet)</option></select>
+<select id="picker" aria-label="Choose a week"><option value="0">4 May</option><option value="1">11 May</option><option value="2">18 May</option><option value="3">25 May</option><option value="4">1 Jun</option><option value="5">8 Jun</option><option value="6">27 Jul</option><option value="7">3 Aug</option><option value="8">10 Aug — this week</option><option value="9">17 Aug — next week</option></select>
 <button id="next" type="button" aria-label="Next week">&#9654;</button>
 </div>
 </header>
@@ -167,8 +169,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <div class="callout">First class</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -181,13 +183,14 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -230,8 +233,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 </div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -244,15 +247,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Banded rows (anchored to chair)</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Lower trap and posture, more lat involvement than pull-aparts</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Wall push-ups</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Pecs, shoulders, triceps, posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Close to wall</li><li>Feet further back</li><li>Hands on window sill</li><li>Lower surface / 3 sec lowering</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: clear wall, roughly an arm-span per person</div><div class="flow">Whole room lines up at the wall at once. No kit, nothing to hand out, and the difficulty is set by where each person puts their feet — so it self-scales without any per-person instruction.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate, straight from one to the other. Reads best when the accessory is wall push-ups — neither is demanding. When it is the hip hinge this is a heavier pairing than intended; take the rest if the room needs it.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Banded rows (anchored to chair)</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Lower trap and posture, more lat involvement than pull-aparts</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Wall push-ups</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Pecs, shoulders, triceps, posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Close to wall</li><li>Feet further back</li><li>Hands on window sill</li><li>Lower surface / 3 sec lowering</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: clear wall, roughly an arm-span per person</div><div class="flow">Whole room lines up at the wall at once. No kit, nothing to hand out, and the difficulty is set by where each person puts their feet — so it self-scales without any per-person instruction.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -294,8 +297,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 </div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -308,15 +311,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Wall push-ups</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Pecs, shoulders, triceps, posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Close to wall</li><li>Feet further back</li><li>Hands on window sill</li><li>Lower surface / 3 sec lowering</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: clear wall, roughly an arm-span per person</div><div class="flow">Whole room lines up at the wall at once. No kit, nothing to hand out, and the difficulty is set by where each person puts their feet — so it self-scales without any per-person instruction.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate, straight from one to the other. Reads best when the accessory is wall push-ups — neither is demanding. When it is the hip hinge this is a heavier pairing than intended; take the rest if the room needs it.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Wall push-ups</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Pecs, shoulders, triceps, posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Close to wall</li><li>Feet further back</li><li>Hands on window sill</li><li>Lower surface / 3 sec lowering</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: clear wall, roughly an arm-span per person</div><div class="flow">Whole room lines up at the wall at once. No kit, nothing to hand out, and the difficulty is set by where each person puts their feet — so it self-scales without any per-person instruction.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -357,8 +360,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 </div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -371,15 +374,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Step-ups</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Stair climbing, unilateral leg strength</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Low step, both hands on chair</li><li>Low step, fingertip support</li><li>Full step, no support</li><li>Full step, controlled 3 sec lowering</li><li>Holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">Same pairing as stepping — one works, one spots. Unilateral, so within a set they alternate legs continuously rather than stopping between sides.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Step-ups</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Stair climbing, unilateral leg strength</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Low step, both hands on chair</li><li>Low step, fingertip support</li><li>Full step, no support</li><li>Full step, controlled 3 sec lowering</li><li>Holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">Same pairing as stepping — one works, one spots. Unilateral, so within a set they alternate legs continuously rather than stopping between sides.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded rows (anchored to chair)</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Lower trap and posture, more lat involvement than pull-aparts</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -412,49 +415,6 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
 </div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">9 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Cat/camel</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Regular walking, length of the room</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Graze wall with one hand, partner&#x27;s hand with the other</li><li>One hand on wall</li><li>No support</li><li>No support, head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Tightrope walk (heel to toe)</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Wall and partner support</li><li>One hand on wall</li><li>No support</li><li>Backwards</li><li>Eyes closed with support</li></ol>
-</div>
-</div></details>
 </section>
 <section class="week" data-current="false">
 <div class="weekhead">
@@ -464,8 +424,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <div class="callout">Sit-to-stand loaded with goblet dumbbell from here on</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -478,15 +438,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -516,49 +476,6 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="ex"><div class="ex-head"><span class="ex-name">Forearm stretch</span><span class="ex-pres">30 sec each hand</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
-</div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">9 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Cat/camel</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Tightrope walk (heel to toe)</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Wall and partner support</li><li>One hand on wall</li><li>No support</li><li>Backwards</li><li>Eyes closed with support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 4 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
 </div></details>
 </section>
 <section class="week" data-current="false">
@@ -568,8 +485,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 </div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -582,15 +499,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -620,49 +537,6 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="ex"><div class="ex-head"><span class="ex-name">Forearm stretch</span><span class="ex-pres">30 sec each hand</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
-</div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">9 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Cat/camel</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Tightrope walk (heel to toe)</strong> <span class="flag-weeks">unchanged 6 weeks</span></div>
-<ol class="rungs"><li>Wall and partner support</li><li>One hand on wall</li><li>No support</li><li>Backwards</li><li>Eyes closed with support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 5 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
 </div></details>
 </section>
 <section class="week" data-current="false">
@@ -673,8 +547,8 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <div class="callout">Tightrope performed backwards; farmer carry single-arm</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
@@ -687,15 +561,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -726,57 +600,6 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
 </div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">11 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Cat/camel</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Tightrope walk (heel to toe)</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Wall and partner support</li><li>One hand on wall</li><li>No support</li><li>Backwards</li><li>Eyes closed with support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 12 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
-<div class="flag">
-<div><strong>Stepping exercise (stepper)</strong> <span class="flag-weeks">unchanged 9 weeks</span></div>
-<ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol>
-</div>
-<div class="flag">
-<div><strong>Banded pull-aparts (palms up)</strong> <span class="flag-weeks">unchanged 9 weeks</span></div>
-<ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol>
-</div>
-</div></details>
 </section>
 <section class="week" data-current="false">
 <div class="weekhead">
@@ -786,12 +609,12 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <div class="callout">Dynamic balance block dropped deliberately — farmer carries done as laps around the room cover the gait/dynamic demand under load. Stepping progressed to 3 x 45 sec.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Head circles</span><span class="ex-pres">5 reps each way</span></div><div class="ex-why">Warm up C-spine and T-spine</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small motion</li><li>Full range</li><li>Bigger circles, slower</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Head circles</span><span class="ex-pres">5 reps each way</span></div><div class="ex-why">Warm up C-spine and T-spine</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small motion</li><li>Full range</li><li>Bigger circles, slower</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="flow">Standing or seated, whole room at once, nothing to set out.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Arm circles</span><span class="ex-pres">10–12 reps</span></div><div class="ex-why">Shoulder warm-up</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Heel-to-toe rockbacks</span><span class="ex-pres">10–15 reps</span></div><div class="ex-why">Ankle mobility, gait prep</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol></details></div>
 </div></details>
@@ -800,15 +623,15 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -839,49 +662,6 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
 </div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">9 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 13 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
-<div class="flag">
-<div><strong>Stepping exercise (stepper)</strong> <span class="flag-weeks">unchanged 10 weeks</span></div>
-<ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol>
-</div>
-<div class="flag">
-<div><strong>Banded pull-aparts (palms up)</strong> <span class="flag-weeks">unchanged 10 weeks</span></div>
-<ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol>
-</div>
-</div></details>
 </section>
 <section class="week" data-current="true">
 <div class="weekhead">
@@ -889,33 +669,33 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="weekmeta">Mount Albert Legion · 4:30–5:30pm · Monday and Wednesday</div>
 </div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
-<div class="callout">Grip rings removed from the record — there are not enough for the class, so grip work was farmer carries alone. The strength and balance blocks are as generated; confirm with Adam whether banded_rows and side_stepping actually ran, since both were retired on 2026-08-10 for being impractical to instruct.</div>
+<div class="callout">Flow was very good. Warm-up run twice through, head to toe. Sit-to-stand alternated with band pull-aparts for 3 sets — good recovery, straight back and forth. Stepping 3 x 45 sec in pairs across the 4 steppers. Hip hinge 2 x 8 and it instructed fine; a few reported soreness afterwards, ordinary DOMS, no joint pain. Calf raises paired straight into a 30 sec balance hold, 2 sets. Tightrope 2 rounds wall to wall. Farmer carries 2 sets of 2 laps.
+Cooldown ran 6 of the 8 computed stretches. Upper trap was simply forgotten. The quad stretch was skipped deliberately — not confident instructing it at the end of a class that had gone well, and unwilling to have people struggle on the last item. Kept in the bank; this was a one-off.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Heel-to-toe rockbacks</span><span class="ex-pres">10–15 reps</span></div><div class="ex-why">Ankle mobility, gait prep</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Arm circles</span><span class="ex-pres">10–12 reps</span></div><div class="ex-why">Shoulder warm-up</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Cat/camel</span><span class="ex-pres">8–10 reps</span></div><div class="ex-why">Open up T-spine</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Arm circles</span><span class="ex-pres">10–12 reps</span></div><div class="ex-why">Shoulder warm-up</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Heel-to-toe rockbacks</span><span class="ex-pres">10–15 reps</span></div><div class="ex-why">Ankle mobility, gait prep</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol></details></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Strength</span>
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Step-ups</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Stair climbing, unilateral leg strength</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Low step, both hands on chair</li><li>Low step, fingertip support</li><li>Full step, no support</li><li>Full step, controlled 3 sec lowering</li><li>Holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">Same pairing as stepping — one works, one spots. Unilateral, so within a set they alternate legs continuously rather than stopping between sides.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">B1</span>Banded rows (anchored to chair)</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Lower trap and posture, more lat involvement than pull-aparts</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">B2</span>Hip hinge to chair or elevated target</span><span class="ex-pres">2 x 6–8</span></div><div class="ex-why">Posterior chain, safe bending pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hands on thighs, high target</li><li>Reach to chair seat</li><li>Reach to lower target</li><li>Pick light object off floor</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each, positioned behind them</div><div class="flow">⚠️ The fussiest thing in the bank to cue. People squat instead of hinging, or round the lumbar spine, and fixing one person leaves the rest waiting. Set it up once for everybody — chair behind, push the hips back to touch it, chest stays proud — then let them work rather than correcting individually mid-set.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>B1 and B2 alternate</strong><div class="pair-why">Alternate, straight from one to the other. Reads best when the accessory is wall push-ups — neither is demanding. When it is the hip hinge this is a heavier pairing than intended; take the rest if the room needs it.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Hip hinge to chair or elevated target</span><span class="ex-pres">2 x 6–8</span></div><div class="ex-why">Posterior chain, safe bending pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hands on thighs, high target</li><li>Reach to chair seat</li><li>Reach to lower target</li><li>Pick light object off floor</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each, positioned behind them</div><div class="flow">⚠️ The fussiest thing in the bank to cue. People squat instead of hinging, or round the lumbar spine, and fixing one person leaves the rest waiting. Set it up once for everybody — chair behind, push the hips back to touch it, chest stays proud — then let them work rather than correcting individually mid-set.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -925,7 +705,7 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~6 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name">Side stepping along wall</span><span class="ex-pres">2 rounds</span></div><div class="ex-why">Dynamic balance in the frontal plane</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small steps, hand on wall</li><li>Larger steps, hand on wall</li><li>No support</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Tightrope walk (heel to toe)</span><span class="ex-pres">2 rounds, length of the room</span></div><div class="ex-why">Dynamic balance, narrow base of support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Wall and partner support</li><li>One hand on wall</li><li>No support</li><li>Backwards</li><li>Eyes closed with support</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: a clear line down the room</div><div class="flow">They walk down and back, so the return trip is the rest.</div></details></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Grip / carry</span>
@@ -939,50 +719,14 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name">Standing lat stretch on wall (hands together, lean forward)</span><span class="ex-pres">30 sec</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf stretch on wall</span><span class="ex-pres">30 sec each leg</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Standing lat stretch on wall (hands together, lean forward)</span><span class="ex-pres">30 sec</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Quadriceps stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated at chair edge, working leg drawn back under the seat</li><li>Standing split stance, both hands on chair, posterior tilt held</li><li>Standing split stance, rear knee bent, chair support</li><li>Standing, hand to ankle, chair support</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Shoulder stretch (rear delt)</span><span class="ex-pres">30 sec each arm</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Forearm stretch</span><span class="ex-pres">30 sec each hand</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated hamstring stretch</span><span class="ex-pres">30 sec each leg</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
-<div class="callout">the cooldown is computed from strength and carry only, so today&#x27;s balance work is not represented here: Side stepping along wall (gluteus_medius)</div>
-</div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">7 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 14 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
 </div></details>
 </section>
 <section class="week" data-current="false">
@@ -993,31 +737,30 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <div class="callout"><strong>Next week, not logged yet.</strong> It becomes final when you run the generator again.</div>
 <div class="callout"><strong>Minute targets are a reference, not a schedule.</strong> Some days move slower and that is fine.</div>
 <details class="block" open><summary>
-<span class="block-name">Warm-up</span>
-<span class="block-time">~5 min guide</span>
+<span class="block-name">Warm-up &times;2</span>
+<span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Marching in place</span><span class="ex-pres">30 sec – 1 min</span></div><div class="ex-why">Gets blood flowing, warms up gait pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Heel-to-toe rockbacks</span><span class="ex-pres">10–15 reps</span></div><div class="ex-why">Ankle mobility, gait prep</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Head circles</span><span class="ex-pres">5 reps each way</span></div><div class="ex-why">Warm up C-spine and T-spine</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small motion</li><li>Full range</li><li>Bigger circles, slower</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="flow">Standing or seated, whole room at once, nothing to set out.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Arm circles</span><span class="ex-pres">10–12 reps</span></div><div class="ex-why">Shoulder warm-up</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Cat/camel</span><span class="ex-pres">8–10 reps</span></div><div class="ex-why">Open up T-spine</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated, hands on knees, small motion</li><li>Seated, full range</li><li>Standing on wall</li><li>Hands behind head</li></ol></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Heel-to-toe rockbacks</span><span class="ex-pres">10–15 reps</span></div><div class="ex-why">Ankle mobility, gait prep</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol></details></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Strength</span>
 <span class="block-time">~24 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A1</span>Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">A2</span>Stepping exercise (stepper)</span><span class="ex-pres">3 x 45 sec</span></div><div class="ex-why">Stair climbing carryover</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Toe taps only, chair as railing</li><li>Full step-up, chair as railing</li><li>Fingertip support</li><li>No support</li><li>No support, holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">4 steppers, 8 people, in pairs. One works, the other spots and rests, then swap. The spotter has a job, so the rest is not dead time — this is the format that already works, do not replace it with a queue.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>A1 and A2 alternate</strong><div class="pair-why">Alternate. Lighter load than either would take alone, heart rate stays up, and nobody sits between sets.</div></div></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">B1</span>Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name"><span class="cp-tag">B2</span>Hip hinge to chair or elevated target</span><span class="ex-pres">2 x 6–8</span></div><div class="ex-why">Posterior chain, safe bending pattern</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hands on thighs, high target</li><li>Reach to chair seat</li><li>Reach to lower target</li><li>Pick light object off floor</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each, positioned behind them</div><div class="flow">⚠️ The fussiest thing in the bank to cue. People squat instead of hinging, or round the lumbar spine, and fixing one person leaves the rest waiting. Set it up once for everybody — chair behind, push the hips back to touch it, chest stays proud — then let them work rather than correcting individually mid-set.</div></details></div>
-<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>B1 and B2 alternate</strong><div class="pair-why">Alternate, straight from one to the other. Reads best when the accessory is wall push-ups — neither is demanding. When it is the hip hinge this is a heavier pairing than intended; take the rest if the room needs it.</div></div></div>
+<div class="pair"><span class="pair-arrow">&#8645;</span><div><strong>Pairings you usually use</strong><ul class="pairlist"><li>Sit-to-stand ↔ band pull-aparts — good recovery, straight back and forth</li><li>Sit-to-stand ↔ stepping — when there are 4 or fewer and nobody has to share</li><li>Calf raises → balance hold — always, and with no rest between the two</li><li>Whatever is left over runs in pairs on the steppers, one working one spotting</li></ul><div class="pair-why">Pick on the day — it depends who turns up.</div></div></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Sit-to-stand from chair</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Chair rise strength, quad function, independence</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs in a circle, dumbbells within reach</div><div class="flow">Everyone has their own chair, so the whole room works at once. Alternated with the step exercise, which is why the load stays light — the heart rate does the work and nobody sits between sets.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Step-ups</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Stair climbing, unilateral leg strength</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Low step, both hands on chair</li><li>Low step, fingertip support</li><li>Full step, no support</li><li>Full step, controlled 3 sec lowering</li><li>Holding dumbbells</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: 4 steppers spaced out, a chair beside each as a rail</div><div class="flow">Same pairing as stepping — one works, one spots. Unilateral, so within a set they alternate legs continuously rather than stopping between sides.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Banded pull-aparts (palms up)</span><span class="ex-pres">3 x 10</span></div><div class="ex-why">Lower trap and posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light band, hands wide, small range</li><li>Light band, full range</li><li>Medium band, full range</li><li>Medium band, 1 sec holds</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one band length each, handed out</div><div class="flow">The best group exercise in the bank — everyone holds their own band, stands anywhere, nothing to anchor and nothing to fail. Alternates with the accessory.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Wall push-ups</span><span class="ex-pres">3 x 10–15</span></div><div class="ex-why">Pecs, shoulders, triceps, posture</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Close to wall</li><li>Feet further back</li><li>Hands on window sill</li><li>Lower surface / 3 sec lowering</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: clear wall, roughly an arm-span per person</div><div class="flow">Whole room lines up at the wall at once. No kit, nothing to hand out, and the difficulty is set by where each person puts their feet — so it self-scales without any per-person instruction.</div></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf raises</span><span class="ex-pres">2 x 10</span></div><div class="ex-why">Calf strength, gait, stair support</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair. Runs straight into the balance hold, so there is no gap at all between the two.</div></details></div><div class="pair"><span class="pair-arrow">&#8595;</span><div><strong>straight into Static balance hold</strong> — no rest<div class="pair-why">Straight into the balance hold, no rest between them. Fatigued plantarflexors blunt the ankle strategy — the small, continuous soleus and gastrocnemius corrections that hold quiet stance — so the room is pushed toward the hip strategy and the single-leg work gets genuinely harder than it would be fresh. That is the point. It also looks more like the moment people actually lose their footing, which is late in the day and tired, not fresh and warm.</div></div></div>
 </div></details>
 <details class="block" open><summary>
 <span class="block-name">Static balance</span>
-<span class="block-time">~6 min guide</span>
+<span class="block-time">~3 min guide</span>
 </summary>
 <div class="block-body">
 <div class="ex"><div class="ex-head"><span class="ex-name">Static balance hold</span><span class="ex-pres">2 rounds x up to 30 sec</span></div><div class="ex-why">Static balance progression — find the appropriate difficulty and work there</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: chairs, one each</div><div class="flow">Everyone at their own chair, everyone on their own rung, all at the same time. Comes straight off the calf raises with the plantarflexors already fatigued.</div></details></div>
@@ -1034,58 +777,22 @@ footer { color: var(--muted); font-size: .76rem; text-align: center;
 <span class="block-time">~11 min guide</span>
 </summary>
 <div class="block-body">
-<div class="ex"><div class="ex-head"><span class="ex-name">Farmer carries with dumbbells</span><span class="ex-pres">2 sets of 2 laps around the room</span></div><div class="ex-why">Grip and posture — and it covers the dynamic balance demand under load</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: dumbbells out on the floor, a clear lap around the room</div><div class="flow">Laps around the room, so the walking is the exercise and the turn is the rest. Everyone moves at their own pace and nobody is queued behind anybody.</div></details></div>
+<div class="ex"><div class="ex-head"><span class="ex-name">Single-arm (suitcase) carry</span><span class="ex-pres">2 sets — 1 lap each side</span></div><div class="ex-why">Grip and posture like the farmer carry, plus an anti-lateral-flexion demand — the load on one side tries to tip the trunk toward it, and the obliques and quadratus lumborum on the opposite side resist. That is the frontal-plane trunk control that keeps someone upright when they carry a bag of groceries in one hand.</div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Light dumbbell, half the room and back</li><li>Light dumbbell, full lap each side</li><li>Heavier dumbbell</li><li>Heavier dumbbell, 2 laps each side</li></ol></details><details class="ladder"><summary>how it runs</summary><div class="setup">Set up: one dumbbell per person, a clear lap around the room</div><div class="flow">One dumbbell each rather than a pair, so 10 dumbbells covers 10 people and nobody waits. Swap hands at the end of each lap — the walk back IS the other side&#x27;s set.</div></details></div>
 <div class="callout"><strong>Slot empty.</strong> Grip ring squeezes (not enough grip rings for the whole class); Extensor band exercise (not enough extensor bands for the whole class)</div>
 </div></details>
 <details class="block" open><summary>
-<span class="block-name">Cooldown / mobility (8)</span>
+<span class="block-name">Cooldown / mobility (7)</span>
 <span class="block-time">~8 min guide</span>
 </summary>
 <div class="block-body">
+<div class="ex"><div class="ex-head"><span class="ex-name">Wall pec stretch</span><span class="ex-pres">30 sec each arm</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Standing calf stretch on wall</span><span class="ex-pres">30 sec each leg</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Standing lat stretch on wall (hands together, lean forward)</span><span class="ex-pres">30 sec</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Quadriceps stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Seated at chair edge, working leg drawn back under the seat</li><li>Standing split stance, both hands on chair, posterior tilt held</li><li>Standing split stance, rear knee bent, chair support</li><li>Standing, hand to ankle, chair support</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Shoulder stretch (rear delt)</span><span class="ex-pres">30 sec each arm</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Forearm stretch</span><span class="ex-pres">30 sec each hand</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated piriformis stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
-<div class="ex"><div class="ex-head"><span class="ex-name">Seated hamstring stretch</span><span class="ex-pres">30 sec each leg</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Gentle range</li><li>Standard</li><li>Slightly deeper</li></ol></details></div>
 <div class="ex"><div class="ex-head"><span class="ex-name">Seated upper trap stretch</span><span class="ex-pres">30 sec each side</span></div><details class="ladder"><summary>easier / harder</summary><ol class="rungs"><li>Hand under chair seat, small lateral flexion</li><li>Ear toward shoulder, opposite shoulder actively depressed</li><li>Add slight cervical rotation away</li></ol></details></div>
 <div class="callout">the cooldown is computed from strength and carry only, so today&#x27;s balance work is not represented here: Side step / tightrope lap (gluteus_medius)</div>
-</div></details>
-<details class="block"><summary>
-<span class="block-name">Worth a look</span>
-<span class="block-time">7 slots</span>
-</summary>
-<div class="block-body">
-<div class="callout"><strong>Review prompt, not a prescription change.</strong> These slots have not moved in a while. The question is who in the room is ready for the next rung — not whether to add load for everyone. Progression is per person.</div>
-<div class="flag">
-<div><strong>Marching in place</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Seated march</li><li>Slow pace, low knee</li><li>Standard pace</li><li>Faster / higher knee lift</li></ol>
-</div>
-<div class="flag">
-<div><strong>Heel-to-toe rockbacks</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Chair support, small range</li><li>Chair support, full range</li><li>Fingertip support</li><li>No support</li></ol>
-</div>
-<div class="flag">
-<div><strong>Arm circles</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Small circles</li><li>Medium circles</li><li>Big circles</li><li>Big circles, both directions, slower</li></ol>
-</div>
-<div class="flag">
-<div><strong>Sit-to-stand from chair</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Higher chair, push through hands</li><li>Standard chair, hands on thighs</li><li>Standard chair, no hands</li><li>Goblet dumbbell hold</li><li>Heavier goblet / 3 sec lowering</li><li>No chair / single leg to box</li></ol>
-</div>
-<div class="flag">
-<div><strong>Standing calf raises</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Both hands on chair</li><li>Fingertip support</li><li>No support</li><li>No support, 3 sec lowering</li><li>Straight into single-leg stance</li><li>Single-leg calf raise</li></ol>
-</div>
-<div class="flag">
-<div><strong>Static balance hold</strong> <span class="flag-weeks">unchanged 16 weeks</span></div>
-<ol class="rungs"><li>Feet together, chair support</li><li>Feet together, no support</li><li>Semi-tandem</li><li>Tandem</li><li>Single-leg stance, two fingers on chair</li><li>Single-leg stance, no support</li><li>Single-leg stance, eyes closed or head turns</li></ol>
-</div>
-<div class="flag">
-<div><strong>Farmer carries with dumbbells</strong> <span class="flag-weeks">unchanged 15 weeks</span></div>
-<ol class="rungs"><li>Grip rings instead of dumbbells</li><li>Light dumbbells, length of room</li><li>Light dumbbells, there and back</li><li>Heavier dumbbells</li><li>Single arm (suitcase carry)</li><li>Single arm, heavier, 2 laps</li></ol>
-</div>
 </div></details>
 </section>
 </div>
