@@ -1,5 +1,5 @@
-/* Mount Wellness — build 20261017-121012 */
-const CACHE = 'mount-wellness-20261017-121012';
+/* Mount Wellness — build 20261024-122739 */
+const CACHE = 'mount-wellness-20261024-122739';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
